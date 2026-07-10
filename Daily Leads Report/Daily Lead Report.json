@@ -1,0 +1,166 @@
+{
+  "name": "Daily Lead Report",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 10,
+              "triggerAtMinute": 1
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -784,
+        -64
+      ],
+      "id": "272342cf-48aa-41aa-8619-0c1d220a738b",
+      "name": "10 pm"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1xBSoewFbQX3TvWfKDylnJxY9Y3YvaaDaS4aUGOkjs2U",
+          "mode": "list",
+          "cachedResultName": "Dental Checkup Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xBSoewFbQX3TvWfKDylnJxY9Y3YvaaDaS4aUGOkjs2U/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xBSoewFbQX3TvWfKDylnJxY9Y3YvaaDaS4aUGOkjs2U/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Date",
+              "lookupValue": "={{ $json.timestamp.toDateTime().format('M/d/yyyy') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -528,
+        -64
+      ],
+      "id": "562d179a-831f-47f8-a977-7c418ce9c8c4",
+      "name": "Getting Leads",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WZccvQH7sso7q7po",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "field": "Name"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.summarize",
+      "typeVersion": 1.1,
+      "position": [
+        -320,
+        -64
+      ],
+      "id": "9a97dd1f-d742-48d4-9e3b-53ac16bbe027",
+      "name": "Total leads count"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0BGLHGP5K3",
+          "mode": "list",
+          "cachedResultName": "daily_report"
+        },
+        "text": "=Today you have recieved {{ $json.count_Name }} Leads.",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        -112,
+        -64
+      ],
+      "id": "991d8abe-a8db-4f82-bc6a-b7468710c727",
+      "name": "Send a message",
+      "webhookId": "8a007f23-c360-413b-afab-eafac6c68a25",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "YvREog5eSvs6PixC",
+          "name": "Slack OAuth2 API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "10 pm": {
+      "main": [
+        [
+          {
+            "node": "Getting Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Getting Leads": {
+      "main": [
+        [
+          {
+            "node": "Total leads count",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Total leads count": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "95d3c20d-14a2-408b-9cd7-6ca4b2dceb12",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c3680da9206b303b763abc8483d262e9c7997864255765972f4350b1c7d766a8"
+  },
+  "nodeGroups": [],
+  "id": "xa8uikqsDOlLhuQ8",
+  "tags": []
+}
