@@ -1,0 +1,358 @@
+{
+  "name": "Lead Automation with Mail Confirmation",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "9eb10989-8584-4da3-a6c5-e48142a2449a",
+        "options": {}
+      },
+      "id": "1d0f0f11-880f-499b-8bdf-278243776e69",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "9eb10989-8584-4da3-a6c5-e48142a2449a"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "806c5616-a012-4b6f-bd56-9259bd728db7",
+              "name": "Name",
+              "value": "={{ $json.Name ||$json.body.name }}",
+              "type": "string"
+            },
+            {
+              "id": "ee631dd9-25ad-4fa1-ac0a-007c98de9bfe",
+              "name": "Phone",
+              "value": "={{ $json['Phone No.'] || $json.body.phone }}",
+              "type": "string"
+            },
+            {
+              "id": "438c0a4a-1f00-488a-a28a-d00f88aca0e4",
+              "name": "email",
+              "value": "={{ $json.Email || $json.body.email }}",
+              "type": "string"
+            },
+            {
+              "id": "dd799ada-1b49-4737-a836-ea4bbdadb924",
+              "name": "Date",
+              "value": "={{ $json.Date || $json.body.date }}",
+              "type": "string"
+            },
+            {
+              "id": "620b9139-a3fe-4e91-87d6-5b93e300c527",
+              "name": "Treatment",
+              "value": "={{ $json['Treatment type'] || $json.body.treatment }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "bf322400-2977-4bff-bd5c-18b70409b47b",
+      "name": "Edit Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Get incoming data (checks multiple common field variations)\nlet rawEmail = $input.item.json.email || $input.item.json.Email || \"\";\nconst incomingPhone = $input.item.json.Phone ||\n                      $input.item.json.phone ||\n                      $input.item.json['Phone No.'] ||\n                      $input.item.json['Phone No'] || \"\";\n\n// Convert phone to string and remove any spaces, dashes or parentheses\nconst phoneRaw = String(incomingPhone).replace(/[\\s\\-()]/g, \"\");\n\n// 2. Fallback: If name and email got smashed together (e.g., \"afuahissaadazeem626@gmail.com\")\n// This regex looks inside the string to pull out just the valid email part\nconst emailExtractorRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}/;\nconst extractedEmailMatch = String(rawEmail).match(emailExtractorRegex);\nconst email = extractedEmailMatch ? extractedEmailMatch[0] : rawEmail;\n\n// 3. Email validation regex\nconst emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\n\n// Standardizes phone prefixes down to an 11-digit format ONLY if they used country codes\nlet cleanPhone = phoneRaw;\nif (cleanPhone.startsWith(\"+92\")) {\n  cleanPhone = \"0\" + cleanPhone.slice(3);\n} else if (cleanPhone.startsWith(\"0092\")) {\n  cleanPhone = \"0\" + cleanPhone.slice(4);\n} else if (cleanPhone.startsWith(\"92\")) {\n  cleanPhone = \"0\" + cleanPhone.slice(2);\n}\n// The 10-digit auto-correct block has been completely removed.\n\n// Check if it's exactly 11 digits and starts with a valid Pakistani mobile network prefix (03xx)\nconst phoneRegex = /^03\\d{9}$/;\n\n\n// 4. Validation Checks\nconst isEmailValid = emailRegex.test(email.trim());\nconst isPhoneValid = phoneRegex.test(cleanPhone);\nconst isGenuine = isEmailValid && isPhoneValid;\n\n// 5. Return original data appended with lead qualification status\nreturn {\n  json: {\n    ...$input.item.json,\n    lead_qualification: {\n      is_genuine: isGenuine ? \"Genuine Lead\" : \"Fake Lead\",\n      is_email_valid: isEmailValid ? \"Genuine\" : \"Fake\",\n      is_phone_valid: isPhoneValid ? \"Genuine\" : \"Fake\",\n      sanitized_phone: isPhoneValid ? cleanPhone : phoneRaw,\n      extracted_email: email // Clean email to send to your sheet!\n    }\n  }\n};"
+      },
+      "id": "627002d4-ea5a-4d3b-80cb-8be4308fdc67",
+      "name": "Code in JavaScript",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1xBSoewFbQX3TvWfKDylnJxY9Y3YvaaDaS4aUGOkjs2U",
+          "mode": "list",
+          "cachedResultName": "Dental Checkup Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xBSoewFbQX3TvWfKDylnJxY9Y3YvaaDaS4aUGOkjs2U/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xBSoewFbQX3TvWfKDylnJxY9Y3YvaaDaS4aUGOkjs2U/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $json.Date }}",
+            "Name": "={{ $json.Name }}",
+            "Phone No": "={{ $json.lead_qualification.sanitized_phone }}",
+            "Email": "={{ $json.lead_qualification.extracted_email }}",
+            "Treatment Type": "={{ $json.Treatment }}",
+            "genuine": "={{ $json.lead_qualification.is_genuine }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone No",
+              "displayName": "Phone No",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Treatment Type",
+              "displayName": "Treatment Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "genuine",
+              "displayName": "genuine",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "5c255b44-ceda-407d-afd2-6a32a10a2220",
+      "name": "Append row in sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        672,
+        192
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WZccvQH7sso7q7po",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Webhook').item.json.body.email || $('Edit Fields').item.json.email}}",
+        "subject": "=Your Appointment Request at BrightSmile – ",
+        "emailType": "text",
+        "message": "=Hi {{ $('Edit Fields').item.json.Name || $('Webhook').item.json.body.name }},\n\nThank you for reaching out to BrightSmile! We have successfully received your enquiry through our website.\n\nWe see that you are interested in our {{ $json.Treatment }} service. Our team is currently reviewing your preferred details and will get back to you shortly within a few hours to officially lock in your checkup slot.\n\nIf you need to change any information or have urgent questions in the meantime, feel free to reply directly to this email.\n\nWe look forward to helping you achieve a brighter smile!\n\nBest regards,\n\nThe BrightSmile Team\n\nModern, gentle dental care.",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "02a432b3-9898-422e-a1e3-8d610a4c6655",
+      "name": "Send a message",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        896,
+        192
+      ],
+      "webhookId": "3d0a9d05-5850-4630-a605-614c5f27de9d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QbiYVWqAbDQHhgEh",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "2309031e-1f02-465f-85ec-302b09839f39",
+      "name": "When clicking ‘Execute workflow’",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "formTitle": "Enquiry Form",
+        "formDescription": "Apply for free Dental Checkup",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Name"
+            },
+            {
+              "fieldLabel": "Phone No."
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldType": "email"
+            },
+            {
+              "fieldLabel": "Date",
+              "fieldType": "date"
+            },
+            {
+              "fieldLabel": "Treatment type",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Free Dental Checkup"
+                  },
+                  {
+                    "option": "Root Canal"
+                  },
+                  {
+                    "option": "Teeth Whitening"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a6c8325e-8517-46f2-81c0-948e927ac072",
+      "name": "On form submission",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        384
+      ],
+      "webhookId": "06348870-6208-4313-8ddc-28ebf0a59299"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "6990611d-f73b-464e-9b35-88c7ef1b501a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c3680da9206b303b763abc8483d262e9c7997864255765972f4350b1c7d766a8"
+  },
+  "nodeGroups": [],
+  "id": "EzPQV0h3CzzHshH5",
+  "tags": []
+}
