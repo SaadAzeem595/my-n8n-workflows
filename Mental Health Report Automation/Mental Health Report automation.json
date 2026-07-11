@@ -1,0 +1,122 @@
+{
+  "name": "Mental Health Report automation",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "b448cc31-fb51-44c5-8a89-07359b5bb279",
+        "options": {}
+      },
+      "id": "8f359a18-e24a-4a7e-8fe3-d169888f8064",
+      "name": "Mental heatlh website data",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -48,
+        0
+      ],
+      "webhookId": "b448cc31-fb51-44c5-8a89-07359b5bb279"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash-lite",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash-lite"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are an AI assistant responsible for generating a Mental Health Report email.\n\nIMPORTANT RULES:\n- Your response MUST contain only valid HTML email code.\n- Do NOT include explanations, markdown (like ```html), or text outside the HTML. \n- The output must be a complete HTML email starting with <!DOCTYPE html> and ending with </html>.\n- The HTML must be compatible with Gmail (use inline CSS only).\n- The theme must use a clean blue color palette.\n- The report must look professional and well structured.\n\nUser Information:\nName: {{ $json.body.name }}\nEmail: {{ $json.body.email }}\n\nUser Questionnaire Responses:\nMood (past 2 weeks): {{ $json.body.mood }}\nSleep quality: {{ $json.body.sleep }}\nEnergy level: {{ $json.body.energy }}\nStress Level (1-10): {{ $json.body.stress }}\nSocial connection level: {{ $json.body.social }}\nCognitive Focus: {{ $json.body.focus }}\nPrimary Concerns: {{ $json.body.concerns.join(', ') }}\nGoals for Next Month: {{ $json.body.goals }}\nAdditional Notes: {{ $json.body.notes ? $json.body.notes : 'None provided' }}\n\nGenerate a Mental Health Report email containing:\n1. A professional header with title: \"Personal Mental Wellness Report\" themed in a strong blue (#2563eb).\n2. A short personalized introduction addressing the user by name.\n3. A section titled \"Your Responses Summary\" showing all questionnaire answers mapped neatly into a clean, styled HTML table.\n4. A section titled \"Wellbeing Insights\" summarizing their emotional and mental state in a supportive, insightful, and empathetic tone based on their inputs.\n5. A section titled \"Recommended Next Steps\" with 3-4 highly tailored, actionable suggestions targeting their goals and current focus/stress levels.\n6. A closing supportive message encouraging wellbeing.\n\nHTML DESIGN REQUIREMENTS:\n- Use a centered email container (max-width ~600px).\n- White card layout on a light grey/blue background (#f4f7fa).\n- Soft blue section headings (#1d4ed8).\n- Clean table styling for responses with light borders and subtle padding.\n- Rounded corners and clean, scannable spacing.\n- Use web-safe fonts like Arial, Helvetica, or sans-serif.\n- All styles must be fully inlined for total Gmail rendering compatibility.\n\nReturn ONLY the raw HTML email. Do not include markdown code block syntax."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "d2c5ab10-4e6b-4a6d-ae6e-a1945576b0c3",
+      "name": "Message a model",
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        176,
+        0
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $(\"Mental heatlh website data\").item.json.body.email }}",
+        "subject": "Your Mental Health Report",
+        "message": "={{ $json.content.parts[0].text }}",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "Mental Health Pro"
+        }
+      },
+      "id": "4d81fcdd-0447-4b1d-b84f-a1ebf975d729",
+      "name": "Send a message",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        496,
+        0
+      ],
+      "webhookId": "a012aeb0-e248-4592-b9fd-1a0aa1b75230",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QbiYVWqAbDQHhgEh",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Mental heatlh website data": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "7251e808-f8f4-4b08-bf4b-2c7d6ecb30cd",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c3680da9206b303b763abc8483d262e9c7997864255765972f4350b1c7d766a8"
+  },
+  "nodeGroups": [],
+  "id": "oS6lTUlLK9FE2kby",
+  "tags": []
+}
