@@ -1,0 +1,207 @@
+{
+  "name": "Lead Chatbot",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Hi there! 👋\nMy name is BrightSmile. How can I assist you today?",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -224,
+        0
+      ],
+      "id": "75ddb89f-caf1-4582-ad1b-22a801c569b2",
+      "name": "When chat message received",
+      "webhookId": "27cee7e1-a47b-4ba3-bb1a-08ce68328877"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=You are an AI automation agent responsible for managing lead workflows. You have access to two tools: 'Get Leads' (Google Sheets) and 'Send a message in Gmail'.\n\n### YOUR WORKFLOW EXECUTION ORDER:\n1. When a user requests a lead report or summary, first call the 'Get Leads' tool to fetch the latest data rows.\n2. Parse the spreadsheet array to calculate the total leads and extract individual lead details (Name, Email, Phone No., Treatment, Status).\n3. Call the 'Send a message in Gmail' tool to send the report. You must pass the fully formatted HTML code (using the design requirements below) directly into the 'Message' parameter of the tool.\n4. After successfully calling the Gmail tool, return a brief, polite confirmation message to the user in plain text (e.g., \"I have successfully generated the report and sent it to your email.\").\n\n### GMAIL TOOL 'MESSAGE' FORMATTING RULES:\nWhen passing the content to the Gmail tool's message parameter, the content must be ONLY valid HTML code.\n- Do NOT include markdown code blocks (like ```html) or conversational filler inside the tool's message parameter.\n- The HTML must start with <!DOCTYPE html> and end with </html>.\n- Use inline CSS only for absolute Gmail compatibility.\n\n### HTML DESIGN BLUEPRINT (FOR THE GMAIL TOOL):\n- Centered container (max-width ~600px) on a light grey/blue background (#f4f7fa).\n- White card layout with rounded corners and clean spacing.\n- Professional header titled \"Daily Lead Report\" themed in a strong royal blue (#2563eb).\n- Highlighted summary box displaying \"Total Leads Received Today: [Count]\".\n- A structured data table with light borders (#e2e8f0) and alternating row backgrounds (#f8fafc) displaying Name, Email, Phone No., Treatment, and Genuine State columns.\n- Section headings styled in soft royal blue (#1d4ed8).\n- A professional footer with a copyright notice.\n\nRemember: Output HTML *only* inside the tool parameter. Respond to the user chat in plain text once the tools are finished."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -32,
+        0
+      ],
+      "id": "e1b2c7b4-3244-4166-b15d-9352d3ff96cb",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        32,
+        208
+      ],
+      "id": "a0ffdc64-21f8-49a5-9f25-a4493cc2b9c2",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        192,
+        208
+      ],
+      "id": "08c1f4ef-dac4-457c-a0a6-02075cde6d91",
+      "name": "Send a message in Gmail",
+      "webhookId": "26977656-dbf5-4afc-a531-0565f095d8e5",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QbiYVWqAbDQHhgEh",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Use this tool to read the latest rows from the lead spreadsheet. Always execute this tool first to fetch the names, emails, and phone numbers before generating a daily lead report summary.",
+        "documentId": {
+          "__rl": true,
+          "value": "1xBSoewFbQX3TvWfKDylnJxY9Y3YvaaDaS4aUGOkjs2U",
+          "mode": "list",
+          "cachedResultName": "Dental Checkup Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xBSoewFbQX3TvWfKDylnJxY9Y3YvaaDaS4aUGOkjs2U/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xBSoewFbQX3TvWfKDylnJxY9Y3YvaaDaS4aUGOkjs2U/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        352,
+        192
+      ],
+      "id": "09d4a7c0-fab8-44eb-9fb1-b96452c26334",
+      "name": "Get Leads",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WZccvQH7sso7q7po",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -144,
+        240
+      ],
+      "id": "2e7a4b35-3916-4c01-9488-f71acf145066",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Leads": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "0f0a5db3-4509-4d3c-b812-d1bedb2809f2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c3680da9206b303b763abc8483d262e9c7997864255765972f4350b1c7d766a8"
+  },
+  "nodeGroups": [],
+  "id": "MR6ncNrmI1356NtA",
+  "tags": []
+}

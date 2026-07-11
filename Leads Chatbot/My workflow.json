@@ -1,0 +1,199 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -224,
+        0
+      ],
+      "id": "75ddb89f-caf1-4582-ad1b-22a801c569b2",
+      "name": "When chat message received",
+      "webhookId": "27cee7e1-a47b-4ba3-bb1a-08ce68328877"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a helpful assistant.\nYou have the access of google sheet from that sheet, you have to tell how many leads generated today"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -32,
+        0
+      ],
+      "id": "e1b2c7b4-3244-4166-b15d-9352d3ff96cb",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -176,
+        208
+      ],
+      "id": "64828c8a-1fff-48df-bf9e-9922753e4767",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        32,
+        208
+      ],
+      "id": "a0ffdc64-21f8-49a5-9f25-a4493cc2b9c2",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "use this tool for sending details if asked",
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        176,
+        208
+      ],
+      "id": "08c1f4ef-dac4-457c-a0a6-02075cde6d91",
+      "name": "Send a message in Gmail",
+      "webhookId": "26977656-dbf5-4afc-a531-0565f095d8e5",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QbiYVWqAbDQHhgEh",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Use this tool for getting leads",
+        "documentId": {
+          "__rl": true,
+          "value": "1xBSoewFbQX3TvWfKDylnJxY9Y3YvaaDaS4aUGOkjs2U",
+          "mode": "list",
+          "cachedResultName": "Dental Checkup Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xBSoewFbQX3TvWfKDylnJxY9Y3YvaaDaS4aUGOkjs2U/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xBSoewFbQX3TvWfKDylnJxY9Y3YvaaDaS4aUGOkjs2U/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        352,
+        192
+      ],
+      "id": "09d4a7c0-fab8-44eb-9fb1-b96452c26334",
+      "name": "Get Leads",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WZccvQH7sso7q7po",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Leads": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "2e88c495-d1bb-4a11-bfd6-556c21596b34",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c3680da9206b303b763abc8483d262e9c7997864255765972f4350b1c7d766a8"
+  },
+  "nodeGroups": [],
+  "id": "MR6ncNrmI1356NtA",
+  "tags": []
+}
