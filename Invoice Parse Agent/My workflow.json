@@ -1,0 +1,445 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1w8UkDWEjw2QhrP9KShjaJH0nxk4ls9mP",
+          "mode": "list",
+          "cachedResultName": "n8n1",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1w8UkDWEjw2QhrP9KShjaJH0nxk4ls9mP"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "id": "3dddaa67-5acb-4dc5-9945-25d7b0618cb1",
+      "name": "Google Drive Trigger",
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        -256
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "P2revizpD1Fb0IpH",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "b43d6820-1898-45a1-8671-e7debeb3dae2",
+      "name": "Download file",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -32,
+        -256
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "P2revizpD1Fb0IpH",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        176,
+        -256
+      ],
+      "id": "ce206a9a-02c5-4d67-b45d-9fe3f097784e",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.text }}",
+        "attributes": {
+          "attributes": [
+            {
+              "name": "Invoice Number",
+              "description": "The unique identifier of the invoice",
+              "required": true
+            },
+            {
+              "name": "Vendor Name",
+              "description": "Name of the company issuing the invoice",
+              "required": true
+            },
+            {
+              "name": "Customer Name",
+              "description": "Name of the customer receiving the invoice",
+              "required": true
+            },
+            {
+              "name": "Subtotal",
+              "type": "number",
+              "description": "Total amount before taxes.",
+              "required": true
+            },
+            {
+              "name": "Due Date",
+              "type": "date",
+              "description": "Payment due date",
+              "required": true
+            },
+            {
+              "name": "Total Amount",
+              "type": "number",
+              "description": "Final amount payable after taxes.",
+              "required": true
+            }
+          ]
+        },
+        "options": {
+          "systemPromptTemplate": "You are an expert extraction algorithm.\nOnly extract relevant information from the text.\nIf you do not know the value of an attribute asked to extract, you may omit the attribute's value."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1.2,
+      "position": [
+        416,
+        -256
+      ],
+      "id": "cd47e48f-c4a9-43df-a87b-4185194b63aa",
+      "name": "Information Extractor"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        320,
+        -16
+      ],
+      "id": "8f96c846-4d82-473a-b082-4b077c14bc4f",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1bEsF77xFpXSvWV498U1Ok56HYrl6S0mtZa9LkMKyVAw",
+          "mode": "list",
+          "cachedResultName": "Invoice Details",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1bEsF77xFpXSvWV498U1Ok56HYrl6S0mtZa9LkMKyVAw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1bEsF77xFpXSvWV498U1Ok56HYrl6S0mtZa9LkMKyVAw/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Invoice Number": "={{ $json.output['Invoice Number'] }}",
+            "Vendor Name": "={{ $json.output['Vendor Name'] }}",
+            "Customer Name": "={{ $json.output['Customer Name'] }}",
+            "Subtotal": "={{ $json.output.Subtotal }}",
+            "Due date": "={{ $json.output['Due Date'] }}",
+            "Total Amount": "={{ $json.output['Total Amount'] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Invoice Number",
+              "displayName": "Invoice Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Vendor Name",
+              "displayName": "Vendor Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Customer Name",
+              "displayName": "Customer Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Subtotal",
+              "displayName": "Subtotal",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Due date",
+              "displayName": "Due date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Total Amount",
+              "displayName": "Total Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        736,
+        -256
+      ],
+      "id": "418994ed-5a27-4477-b0a5-c1e30d8d0488",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "6pHos4grigaQkh7q",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=Invoice Number:  {{ $json['Invoice Number'] }}\nVendor Number: {{ $json['Vendor Name']}}\nCustomer Name: {{ $json['Customer Name'] }}\nSubtotal: {{ $json.Subtotal }}\nDue Date: {{ $json['Due date'] }}\nTotal Amount: {{ $json['Total Amount'] }}"
+            },
+            {
+              "role": "system",
+              "content": "You are Shayan, the designated email expert for SaadAI Insights.\n\nYour sole responsibility is to take incoming invoice details and format them into a structured JSON response containing a subject and email body for the billing team.\n\nYou must strictly output a valid JSON object matching this schema. Do not wrap the output in markdown code blocks (like ```json) or add any text outside the JSON:\n\n{\n  \"subject\": \"A short and informative email subject line\",\n  \"email\": \"The complete body of the email to send to the billing team, including the database link: [https://docs.google.com/spreadsheets/d/1UW1zrKvSwotDkgqrdf2801ju9tJZueN6BNa-IsRXMX0/edit?gid=0#gid=0](https://docs.google.com/spreadsheets/d/1UW1zrKvSwotDkgqrdf2801ju9tJZueN6BNa-IsRXMX0/edit?gid=0#gid=0)\"\n}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        928,
+        -256
+      ],
+      "id": "7fbe5782-da16-41b5-87e0-31074af396ba",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "shortcast7860@gmail.com",
+        "subject": "={{ $json.subject }}",
+        "emailType": "text",
+        "message": "={{ $json.email }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1504,
+        -256
+      ],
+      "id": "380b2b6a-b4cd-40d0-8313-c339ff3daedc",
+      "name": "Send a message",
+      "webhookId": "3062d9af-72fd-41bd-8ce3-601f966d4f72",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "5PihL0r1A9f56u0w",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop through all items incoming from the model node\nfor (const item of $input.all()) {\n  // Parse the raw text string into a JSON object\n  const parsedData = JSON.parse(item.json.output[0].content[0].text);\n  \n  // Assign the fields back to the item output\n  item.json.subject = parsedData.subject;\n  item.json.email = parsedData.email;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        -256
+      ],
+      "id": "73d78356-300a-46cd-9fd3-1bb2fd3aeb15",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Drive Trigger": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Information Extractor": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "4e4d008f-431d-4391-b173-f4d3dddfcde4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e4329b084adac2ed5db123300b1710e37ab92ac345d0296184873f700f60cb4b"
+  },
+  "nodeGroups": [],
+  "id": "AnaZHnXui9zz8HNS",
+  "tags": []
+}
